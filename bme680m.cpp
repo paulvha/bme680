@@ -2,7 +2,11 @@
  * 
  * Extended & Modified for Raspberry Pi October 2018 Paul van Haastrecht
  * 
- * Hardware connections: (raspberry B/B+/3)
+ * version 2.0 September 2020 / paulvha
+ * - fix compile issues on Pi-os (Buster)
+ * 
+ * 
+ * Hardware connections: (raspberry B/B+/3/4)
  * 
  * components side pin 1 - left
  * 
@@ -55,7 +59,7 @@
  **********************************************************************/ 
 
 #include "rasp_BME680.h"
-#define  VERSION "1.0 October 2018"
+#define  VERSION "2.0 september 2020"
 
 #define  MAXBUF     200
 #define  LOOPDELAY  5       // 5 seconds delay default
@@ -454,7 +458,6 @@ void add_to_buf(char * buf, char * buf1 )
 void format_output(struct measure *mm, char *buf)
 {
     char    *p,tm[30];
-    char    b[30];
   
     /* use default output if no specific format was requested */
     if (strlen(mm->format) == 0 )
@@ -473,33 +476,32 @@ void format_output(struct measure *mm, char *buf)
     while (*p != 0x0)
     {
         // BME results
-        if (*p == 'T')       sprintf(b, " Temp: %2.2f",mm->bme.tempC);
-        else if (*p == 'H') sprintf(b, " Humidity: %2.2f",mm->bme.humid);
-        else if (*p == 'P') sprintf(b, " Pressure: %2.2f",mm->bme.pressure/100);
-        else if (*p == 'M') sprintf(b, " Height: %2.2f",mm->bme.height);
-        else if (*p == 'R') sprintf(b, " Resistance: %d",mm->bme.gas_resistance/1000);
-        else if (*p == 'D') sprintf(b, " Dewpoint: %2.2f",mm->bme.dewpoint);
+        if (*p == 'T')       sprintf(tm, " Temp: %2.2f",mm->bme.tempC);
+        else if (*p == 'H') sprintf(tm, " Humidity: %2.2f",mm->bme.humid);
+        else if (*p == 'P') sprintf(tm, " Pressure: %2.2f",mm->bme.pressure/100);
+        else if (*p == 'M') sprintf(tm, " Height: %2.2f",mm->bme.height);
+        else if (*p == 'R') sprintf(tm, " Resistance: %d",mm->bme.gas_resistance/1000);
+        else if (*p == 'D') sprintf(tm, " Dewpoint: %2.2f",mm->bme.dewpoint);
         
         // markup
         else if (*p == '\\')
         {
             p++;
 
-            if (*p == 't') sprintf(b, "\t");
-            else if (*p == 's') sprintf(b, " ");
-            else if (*p == 'n') sprintf(b, "\n");
-            else if (*p == ',') sprintf(b, ",");
-            else if (*p == ';') sprintf(b, ";");
+            if (*p == 't') sprintf(tm, "\t");
+            else if (*p == 's') sprintf(tm, " ");
+            else if (*p == 'n') sprintf(tm, "\n");
+            else if (*p == ',') sprintf(tm, ",");
+            else if (*p == ';') sprintf(tm, ";");
             else if (*p == 'l')
             {
                 // get timestamp
                 time_stamp(tm);
-                sprintf(b, " %s",tm);
             }
             else if (*p == '\\')
             {
                 p++; 
-                sprintf(b, "%c",*p);
+                sprintf(tm, "%c",*p);
             }
         }
         
@@ -513,7 +515,7 @@ void format_output(struct measure *mm, char *buf)
             return;
         }
    
-        add_to_buf(buf,b);
+        add_to_buf(buf,tm);
         
         p++;    
  
